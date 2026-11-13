@@ -38,7 +38,7 @@ The repository is already set up to pass F-Droid's checks:
    cd fdroiddata
    git checkout -b org.brianwebb.hamsprint
    curl -o metadata/org.brianwebb.hamsprint.yml \
-     https://raw.githubusercontent.com/brianwebb01/hamsprint/main/docs/fdroid/org.brianwebb.hamsprint.yml
+     https://raw.githubusercontent.com/vyntric-hq/hamsprint/main/docs/fdroid/org.brianwebb.hamsprint.yml
    git add metadata/org.brianwebb.hamsprint.yml
    git commit -m "New app: HamSprint"
    git push -u origin org.brianwebb.hamsprint
@@ -81,7 +81,7 @@ F-Droid verify that its build is byte-for-byte identical to your signed GitHub
 APK and then distribute yours. Add this to the metadata file:
 
 ```yaml
-Binaries: https://github.com/brianwebb01/hamsprint/releases/download/v%v/HamSprint-v%v.apk
+Binaries: https://github.com/vyntric-hq/hamsprint/releases/download/v%v/HamSprint-v%v.apk
 AllowedAPKSigningKeys: 0ae424071e2f192ea9d014b431ef506764d68b5b99d8e6e7fd3d5a85771564d6
 ```
 
