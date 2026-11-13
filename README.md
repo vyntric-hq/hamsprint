@@ -22,7 +22,7 @@ when you're ready to pass.
 ## Download
 
 - **GitHub Releases:** grab the latest signed `HamSprint-vX.Y.Z.apk` from
-  [Releases](https://github.com/brianwebb01/hamsprint/releases/latest).
+  [Releases](https://github.com/vyntric-hq/hamsprint/releases/latest).
   It works on any Android 8.0+ device, including GrapheneOS.
 - **F-Droid:** submission instructions are in [docs/FDROID.md](docs/FDROID.md).
 
