@@ -2,14 +2,14 @@ Categories:
   - Science & Education
 License: GPL-3.0-or-later
 AuthorName: Brian Webb
-SourceCode: https://github.com/brianwebb01/hamsprint
-IssueTracker: https://github.com/brianwebb01/hamsprint/issues
-Changelog: https://github.com/brianwebb01/hamsprint/releases
+SourceCode: https://github.com/vyntric-hq/hamsprint
+IssueTracker: https://github.com/vyntric-hq/hamsprint/issues
+Changelog: https://github.com/vyntric-hq/hamsprint/releases
 
 AutoName: HamSprint
 
 RepoType: git
-Repo: https://github.com/brianwebb01/hamsprint.git
+Repo: https://github.com/vyntric-hq/hamsprint.git
 
 Builds:
   - versionName: 1.0.0

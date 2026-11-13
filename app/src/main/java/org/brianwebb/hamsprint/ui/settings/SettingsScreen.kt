@@ -62,7 +62,7 @@ import org.brianwebb.hamsprint.ui.theme.HamTheme
 import org.brianwebb.hamsprint.ui.theme.Radius
 import org.brianwebb.hamsprint.ui.theme.Space
 
-private const val SOURCE_URL = "https://github.com/brianwebb01/hamsprint"
+private const val SOURCE_URL = "https://github.com/vyntric-hq/hamsprint"
 
 @Composable
 fun SettingsScreen(onBack: () -> Unit) {
