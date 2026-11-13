@@ -1,0 +1,1 @@
+chore: point repo links at vyntric-hq/hamsprint
