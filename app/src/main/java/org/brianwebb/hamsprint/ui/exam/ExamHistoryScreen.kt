@@ -62,7 +62,7 @@ import org.brianwebb.hamsprint.ui.components.PrimaryButton
 import org.brianwebb.hamsprint.ui.components.SecondaryButton
 import org.brianwebb.hamsprint.ui.components.SectionHeader
 import org.brianwebb.hamsprint.ui.formatMillis
-import org.brianwebb.hamsprint.ui.formatPercent
+import org.brianwebb.hamsprint.ui.formatChance
 import org.brianwebb.hamsprint.ui.theme.HamTheme
 import org.brianwebb.hamsprint.ui.theme.Radius
 import org.brianwebb.hamsprint.ui.theme.Space
@@ -175,7 +175,7 @@ private fun VerdictCard(s: ExamHistorySummary) {
         if (s.attempts.isEmpty()) return@HamCard
         Spacer(Modifier.height(Space.xl))
         Row(Modifier.fillMaxWidth()) {
-            Metric("Pass chance", formatPercent(s.passProbability), Modifier.weight(1f))
+            Metric("Pass chance", formatChance(s.passProbability), Modifier.weight(1f))
             Metric("Recent avg", s.recentAverage?.let { "%.1f".format(it) } ?: "-", Modifier.weight(1f))
             Metric("Best", s.best?.score?.toString() ?: "-", Modifier.weight(1f))
             Metric("Streak", "${s.passStreak}", Modifier.weight(1f))
@@ -187,7 +187,7 @@ private fun verdictDetail(s: ExamHistorySummary): String {
     val needPasses = (ExamHistorySummary.CONFIRMING_PASSES - s.passStreak).coerceAtLeast(0)
     val modelReady = s.passProbability >= Readiness.READY_THRESHOLD
     return when {
-        s.examReady -> "Passed your last ${s.passStreak} in a row with a ${formatPercent(s.passProbability)} pass chance. Book your session."
+        s.examReady -> "Passed your last ${s.passStreak} in a row with a ${formatChance(s.passProbability)} pass chance. Book your session."
         !modelReady && s.attempts.isEmpty() -> "Train until your pass chance hits 95%, then pass 2 exams in a row."
         !modelReady -> "Keep training until your pass chance reaches 95%."
         else -> "Your pass chance is there. Pass $needPasses more exam${if (needPasses == 1) "" else "s"} in a row to confirm."

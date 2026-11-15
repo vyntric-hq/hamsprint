@@ -63,7 +63,9 @@ import org.brianwebb.hamsprint.ui.components.PrimaryButton
 import org.brianwebb.hamsprint.ui.components.ProgressBar
 import org.brianwebb.hamsprint.ui.components.QuestionBody
 import org.brianwebb.hamsprint.ui.components.SecondaryButton
+import org.brianwebb.hamsprint.ui.formatChance
 import org.brianwebb.hamsprint.ui.formatPercent
+import org.brianwebb.hamsprint.ui.formatScore
 import org.brianwebb.hamsprint.ui.foundations.BuildsOnCard
 import org.brianwebb.hamsprint.ui.foundations.FoundationBody
 import org.brianwebb.hamsprint.ui.theme.HamTheme
@@ -315,11 +317,15 @@ private fun Summary(s: TrainingUiState.Summary, onKeepGoing: () -> Unit, onDone:
                 SummaryStat("Reviewed", "${sum.reviewed}", Modifier.weight(1f))
             }
             Box(Modifier.padding(vertical = Space.lg).fillMaxWidth().height(1.dp).background(c.separator))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Pass chance", style = MaterialTheme.typography.titleSmall, color = c.textSecondary, modifier = Modifier.weight(1f))
-                Text(formatPercent(s.passBefore), style = MaterialTheme.typography.titleMedium, color = c.textTertiary)
-                Icon(HamIcons.Chevron, null, tint = c.textTertiary, modifier = Modifier.padding(horizontal = Space.xs).size(16.dp))
-                Text(formatPercent(s.passAfter), style = MaterialTheme.typography.titleLarge, color = c.accent)
+            OutlookChange(
+                "Expected score",
+                formatScore(s.before.expectedScore),
+                formatScore(s.after.expectedScore),
+                caption = "out of ${s.after.examQuestions} · pass with ${s.after.passingScore}",
+            )
+            if (s.before.showsPassChance || s.after.showsPassChance) {
+                Spacer(Modifier.height(Space.md))
+                OutlookChange("Pass chance", formatChance(s.before.passProbability), formatChance(s.after.passProbability))
             }
         }
         Spacer(Modifier.height(40.dp))
@@ -327,6 +333,20 @@ private fun Summary(s: TrainingUiState.Summary, onKeepGoing: () -> Unit, onDone:
         Spacer(Modifier.height(Space.md))
         SecondaryButton("Done", onDone)
         Spacer(Modifier.height(Space.lg))
+    }
+}
+
+@Composable
+private fun OutlookChange(label: String, before: String, after: String, caption: String? = null) {
+    val c = HamTheme.colors
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Text(label, style = MaterialTheme.typography.titleSmall, color = c.textSecondary)
+            caption?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = c.textTertiary) }
+        }
+        Text(before, style = MaterialTheme.typography.titleMedium, color = c.textTertiary)
+        Icon(HamIcons.Chevron, null, tint = c.textTertiary, modifier = Modifier.padding(horizontal = Space.xs).size(16.dp))
+        Text(after, style = MaterialTheme.typography.titleLarge, color = c.accent)
     }
 }
 
