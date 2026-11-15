@@ -60,13 +60,14 @@ import org.brianwebb.hamsprint.ui.components.Ring
 import org.brianwebb.hamsprint.ui.components.SecondaryButton
 import org.brianwebb.hamsprint.ui.components.SectionHeader
 import org.brianwebb.hamsprint.ui.components.pressable
+import org.brianwebb.hamsprint.ui.formatChance
 import org.brianwebb.hamsprint.ui.formatDate
 import org.brianwebb.hamsprint.ui.formatDuration
 import org.brianwebb.hamsprint.ui.formatMillis
+import org.brianwebb.hamsprint.ui.formatScore
 import org.brianwebb.hamsprint.ui.theme.HamTheme
 import org.brianwebb.hamsprint.ui.theme.Radius
 import org.brianwebb.hamsprint.ui.theme.Space
-import kotlin.math.roundToInt
 
 @Composable
 fun HomeScreen(onNavigate: (Screen) -> Unit) {
@@ -207,7 +208,7 @@ private fun ReadinessCard(s: HomeUiState.Ready) {
             Ring(progress = r.passProbability.toFloat(), modifier = Modifier.size(128.dp)) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        "${(r.passProbability * 100).roundToInt()}%",
+                        formatChance(r.passProbability),
                         style = MaterialTheme.typography.headlineMedium,
                         color = c.textPrimary,
                     )
@@ -243,6 +244,9 @@ private fun readinessMessage(s: HomeUiState.Ready): String {
         r.isReady && lastTwoPassed -> "You've passed your last two practice exams. Go book your exam session!"
         r.isReady -> "Confirm it: pass two practice exams in a row, then book your exam."
         r.passProbability >= 0.5 -> "You'd likely pass today, but it's not a sure thing yet. Keep training."
+        !r.outlook.showsPassChance ->
+            "Pass chance stays low until you've covered most topics, because the exam asks about every one. " +
+                "Expected score now: ${formatScore(r.expectedScore)} of ${r.outlook.examQuestions} (pass with ${r.outlook.passingScore})."
         else -> "Studied ${formatMillis(s.studyTimeMillis)} so far. Short, frequent sessions beat one long one."
     }
 }

@@ -24,5 +24,18 @@ fun formatMillis(millis: Long): String = formatDuration(millis.milliseconds)
 
 fun formatPercent(p: Double): String = "${(p * 100).roundToInt()}%"
 
+/** Like [formatPercent], but a real possibility never reads as a flat 0% or 100%. */
+fun formatChance(p: Double): String {
+    val rounded = (p * 100).roundToInt()
+    return when {
+        rounded == 0 && p > 0 -> "<1%"
+        rounded == 100 && p < 1 -> ">99%"
+        else -> "$rounded%"
+    }
+}
+
+/** One decimal, so a round's gain in expected exam score is visible. */
+fun formatScore(score: Double): String = String.format(Locale.US, "%.1f", score)
+
 fun formatDate(date: LocalDate): String =
     date.format(DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.US))
