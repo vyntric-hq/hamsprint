@@ -16,6 +16,7 @@ import org.brianwebb.hamsprint.AppContainer
 import org.brianwebb.hamsprint.domain.Card
 import org.brianwebb.hamsprint.domain.CardKind
 import org.brianwebb.hamsprint.domain.Curriculum
+import org.brianwebb.hamsprint.domain.ExamOutlook
 import org.brianwebb.hamsprint.domain.Foundation
 import org.brianwebb.hamsprint.domain.LicenseClass
 import org.brianwebb.hamsprint.domain.QuestionPool
@@ -70,8 +71,8 @@ sealed interface TrainingUiState {
     }
     data class Summary(
         val summary: RoundSummary,
-        val passBefore: Double,
-        val passAfter: Double,
+        val before: ExamOutlook,
+        val after: ExamOutlook,
         val scopeTitle: String?,
     ) : TrainingUiState
 }
@@ -88,7 +89,7 @@ class TrainingViewModel(
     private var session: TrainingSession? = null
     private var aids: Map<String, VisualAid> = emptyMap()
     private var curriculum: Curriculum = Curriculum.EMPTY
-    private var passBefore = 0.0
+    private lateinit var outlookBefore: ExamOutlook
     private var cardShownAt = 0L
     private var autoAdvance: Job? = null
 
@@ -113,7 +114,7 @@ class TrainingViewModel(
                 val scope = subelementId
                     ?.let { id -> pool.subelements.firstOrNull { it.id == id }?.questions }
                     ?: pool.questions
-                passBefore = pass(progress)
+                outlookBefore = outlook(progress)
                 TrainingSession(
                     pool = pool,
                     scope = scope,
@@ -184,7 +185,7 @@ class TrainingViewModel(
         val s = session ?: return
         val card = s.current
         if (card == null) {
-            _state.value = TrainingUiState.Summary(s.summary(), passBefore, pass(s.progress), scopeTitle)
+            _state.value = TrainingUiState.Summary(s.summary(), outlookBefore, outlook(s.progress), scopeTitle)
             return
         }
         cardShownAt = container.clock.nowMillis()
@@ -224,8 +225,8 @@ class TrainingViewModel(
             .onFailure { Log.e(TAG, "Foundations unavailable for ${license.poolId}", it) }
             .getOrDefault(Curriculum.EMPTY)
 
-    private fun pass(progress: Map<String, QuestionProgress>): Double =
-        Readiness.evaluate(pool, progress, container.clock.nowMillis()).passProbability
+    private fun outlook(progress: Map<String, QuestionProgress>): ExamOutlook =
+        Readiness.outlook(pool, progress, container.clock.nowMillis())
 
     private fun fail(t: Throwable) {
         _state.value = TrainingUiState.Error(t.message ?: "Something went wrong saving your progress.")

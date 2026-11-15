@@ -1,6 +1,7 @@
 package org.brianwebb.hamsprint.domain
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlin.time.Duration
@@ -26,6 +27,29 @@ class ReadinessTest {
         assertEquals(pool.questions.size, r.unseen)
         assertEquals(0, r.seen)
         assertEquals(35 * MemoryModel.GUESS, r.expectedScore, 1e-9)
+    }
+
+    @Test
+    fun `early on, learning questions raises the expected score while pass chance is too small to show`() {
+        val pool = realPools.load(LicenseClass.TECHNICIAN)
+        val before = Readiness.outlook(pool, emptyMap(), now)
+        val learned = pool.questions.take(12).associate { it.id to progressAt(it.id, 1, dueAt = now + 1) }
+        val after = Readiness.outlook(pool, learned, now)
+
+        assertTrue("expected score moves: ${before.expectedScore} -> ${after.expectedScore}", after.expectedScore > before.expectedScore + 0.1)
+        assertFalse(before.showsPassChance)
+        assertFalse(after.showsPassChance)
+        assertEquals(35, after.examQuestions)
+        assertEquals(26, after.passingScore)
+    }
+
+    @Test
+    fun `pass chance is worth showing once it reaches one percent`() {
+        val pool = realPools.load(LicenseClass.GENERAL)
+        val progress = pool.questions.associate { it.id to progressAt(it.id, 4, dueAt = now + 1) }
+        val outlook = Readiness.outlook(pool, progress, now)
+        assertTrue(outlook.showsPassChance)
+        assertEquals(outlook, Readiness.evaluate(pool, progress, now).outlook)
     }
 
     @Test

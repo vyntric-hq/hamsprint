@@ -12,9 +12,24 @@ data class SubelementReadiness(
     val total: Int,
 )
 
-data class ReadinessReport(
+/**
+ * How the real exam would go if taken now. Pass chance is the headline, but it
+ * sits near zero until most groups are learned and then climbs steeply, so early
+ * progress shows in [expectedScore] instead.
+ */
+data class ExamOutlook(
     val passProbability: Double,
+    /** Expected number of correct answers, counting a 1-in-4 guess on unlearned groups. */
     val expectedScore: Double,
+    val examQuestions: Int,
+    val passingScore: Int,
+) {
+    /** Below this, pass chance can't show progress between rounds; expected score can. */
+    val showsPassChance: Boolean get() = passProbability >= Readiness.SHOWN_PASS_THRESHOLD
+}
+
+data class ReadinessReport(
+    val outlook: ExamOutlook,
     val totalQuestions: Int,
     val unseen: Int,
     val learning: Int,
@@ -24,6 +39,8 @@ data class ReadinessReport(
     /** Rough study time still needed to reach [Readiness.READY_THRESHOLD]. */
     val timeToReady: Duration,
 ) {
+    val passProbability: Double get() = outlook.passProbability
+    val expectedScore: Double get() = outlook.expectedScore
     val isReady: Boolean get() = passProbability >= Readiness.READY_THRESHOLD
     val seen: Int get() = totalQuestions - unseen
 }
@@ -38,6 +55,7 @@ data class ReadinessReport(
  */
 object Readiness {
     const val READY_THRESHOLD = 0.95
+    const val SHOWN_PASS_THRESHOLD = 0.01
 
     /** Per-question study cost, calibrated against StudySimulationTest (preview + spaced recalls). */
     private val NEW_QUESTION_COST = 34.seconds
@@ -57,8 +75,7 @@ object Readiness {
         curriculum: Curriculum = Curriculum.EMPTY,
         seenFoundations: Set<String> = emptySet(),
     ): ReadinessReport {
-        val recall = pool.questions.associate { it.id to MemoryModel.recallProbability(progress[it.id], nowMillis) }
-        val groupRecall = pool.groups.map { g -> g.questions.sumOf { recall.getValue(it.id) } / g.questions.size }
+        val recall = recallByQuestion(pool, progress, nowMillis)
 
         var unseen = 0
         var learning = 0
@@ -85,8 +102,7 @@ object Readiness {
         }
 
         return ReadinessReport(
-            passProbability = passProbability(groupRecall, pool.passingScore),
-            expectedScore = groupRecall.sum(),
+            outlook = outlook(pool, recall),
             totalQuestions = pool.questions.size,
             unseen = unseen,
             learning = learning,
@@ -96,6 +112,23 @@ object Readiness {
             timeToReady = timeToReady(pool, progress, nowMillis, curriculum, seenFoundations),
         )
     }
+
+    /** The exam-day outlook alone: cheap enough to compute after every round. */
+    fun outlook(pool: QuestionPool, progress: Map<String, QuestionProgress>, nowMillis: Long): ExamOutlook =
+        outlook(pool, recallByQuestion(pool, progress, nowMillis))
+
+    private fun outlook(pool: QuestionPool, recall: Map<String, Double>): ExamOutlook {
+        val groupRecall = pool.groups.map { g -> g.questions.sumOf { recall.getValue(it.id) } / g.questions.size }
+        return ExamOutlook(
+            passProbability = passProbability(groupRecall, pool.passingScore),
+            expectedScore = groupRecall.sum(),
+            examQuestions = pool.examQuestions,
+            passingScore = pool.passingScore,
+        )
+    }
+
+    private fun recallByQuestion(pool: QuestionPool, progress: Map<String, QuestionProgress>, nowMillis: Long): Map<String, Double> =
+        pool.questions.associate { it.id to MemoryModel.recallProbability(progress[it.id], nowMillis) }
 
     /** P(at least [passingScore] successes) for independent trials with the given probabilities. */
     fun passProbability(probabilities: List<Double>, passingScore: Int): Double {
@@ -128,8 +161,7 @@ object Readiness {
         val learnedRecall = MemoryModel.recallProbability(
             QuestionProgress("", 2, nowMillis, 0, 0, 0, nowMillis), nowMillis,
         )
-        val recall = pool.questions.associate { it.id to MemoryModel.recallProbability(progress[it.id], nowMillis) }
-            .toMutableMap()
+        val recall = recallByQuestion(pool, progress, nowMillis).toMutableMap()
         val groupSizes = pool.groups.associate { it.id to it.questions.size }
 
         fun currentPass(): Double = passProbability(
